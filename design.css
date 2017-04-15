@@ -1,0 +1,34 @@
+body {
+	background-color: #FFE4C4;
+	font-family: sans-serif;
+}
+
+#scorediv {
+	position: absolute;
+	top: 30px;
+	right: 40px;
+}
+
+#elapsed {
+	position: absolute;
+	top: 30px;
+	left: 40px;
+}
+
+#playground {
+	position: absolute;
+	background-color: lightgrey;
+	border-radius: 10px;
+}
+
+.tile {
+	float: left;
+	width: 100px;
+	height: 100px;
+	border: 2px solid #CDC5BF;
+	border-radius: 10px;
+	text-align: center;
+	line-height: 100px;
+	font-size: 32px;
+	font-family: sans-serif;
+}
