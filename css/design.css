@@ -1,0 +1,102 @@
+html,
+body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	overscroll-behavior: contain;
+}
+
+body {
+	position: relative;
+	overscroll-behavior: contain;
+	background-color: #FFE4C4;
+	font-family: sans-serif;
+}
+
+#scorediv {
+	height: 50px;
+	line-height: 50px;
+	text-align: center;
+}
+
+#restart {
+	width: 200px;
+	height: 50px;
+	background-color: #F4A460;
+	border: none;
+}
+
+#restart:hover {
+	background-color: #FF7256;
+	cursor: pointer;
+}
+
+#playground {
+	width: 100vw;
+	position: absolute;
+	border-radius: 10px;
+}
+
+.row {
+	display: flex;
+	flex-direction: row;
+}
+
+.tile {
+	float: left;
+	width: 100px;
+	height: 100px;
+	border: 2px solid #CDC5BF;
+	border-radius: 10px;
+	text-align: center;
+	line-height: 100px;
+	font-size: 32px;
+	font-family: sans-serif;
+	flex: 0 0 auto;
+	background: lightgrey;
+}
+
+.tile-2 {
+	background: #FEF0DB;
+}
+
+.tile-4 {
+	background: #FCE6C9;
+}
+
+.tile-8 {
+	background: #FFCC99;
+}
+
+.tile-16 {
+	background: #F4A460;
+}
+
+.tile-32 {
+	background: #FF7256;
+}
+
+.tile-64 {
+	background: #CD4F39;
+}
+
+.tile-128 {
+	background: #FFE600;
+}
+
+.tile-256 {
+	background: #FCD116;
+}
+
+.tile-512 {
+	background: #EEEB8D;
+}
+
+.tile-1024 {
+	background: #CECC15;
+}
+
+.tile-2048 {
+	background: #FF8C00;
+}

@@ -5,8 +5,28 @@
  * just remove the last condition in the else if in the movement functions
  **/
 
+(function() {
+	'use strict';
+
+    window.onload = function() {
+        console.log("Loaded 3");
+
+        test();
+     }
+
+    function test() {
+         console.log("test worx 2");
+    }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+        .register('./service-worker.js')
+        .then(function() { console.log('Service Worker Registered'); });
+    }
+})();
+
 var starttime = 59,
-	occupied = [],
+	tiles = [],
 	gridsize =  4,
 	changed = false,
 	score = 0,
@@ -21,7 +41,7 @@ function init() {
 	var playground = document.getElementById('playground');
 	while (playground.firstChild) playground.removeChild(playground.firstChild);
 
-	occupied = [];
+	tiles = [];
 	score = 0;
 	Swipe.init();
 	Swipe.onLeft(moveleft);
@@ -37,19 +57,19 @@ function init() {
 	scorediv.style.width = gridsize * 100 + gridsize * 4 + "px";
 	scorediv.style.marginLeft = (window.innerWidth - parseInt(playground.style.width)) / 2 + "px";
 
-	// Draw grid and initialize occupied array
+	// Draw grid and initialize tiles array
 	for (var i = 0; i < gridsize; i++) {
 		var row = document.createElement('div');
 		row.className = 'row';
 		playground.appendChild(row);
 		var newLine = [];
-		occupied.push(newLine);
+		tiles.push(newLine);
 		for (var j = 0; j < gridsize; j++) {
 			var tile = document.createElement('div');
 			tile.id = i + "" + j;
 			tile.className = "tile";
 			row.appendChild(tile);
-			occupied[i].push({value: 0, changed: false});
+			tiles[i].push({value: 0, changed: false});
 		}
 	}
 
@@ -80,22 +100,27 @@ document.onkeydown = function(e) {
 function moveleft() {
 	for (var i = 0; i < gridsize; i++) {
 		for (var j = 0; j < gridsize; j++) {
-			if (occupied[i][j].value != 0) {
-				if (j > 0 && occupied[i][j-1].value == 0) {
-					occupied[i][j-1].value = occupied[i][j].value;
-					occupied[i][j].value = 0;
-					j -= 2;
-					changed = true;
-				}
-				else if (j > 0 && occupied[i][j-1].value == occupied[i][j].value && !occupied[i][j-1].changed) {
-					occupied[i][j-1].value = occupied[i][j].value * 2;
-					score += occupied[i][j-1].value;
+			if (j > 0 && tiles[i][j].value != 0 && (tiles[i][j-1].value == tiles[i][j].value || tiles[i][j-1].value == 0) && !tiles[i][j-1].changed) {
+				// Check if we move to 0-tile
+				var toZeroTile = tiles[i][j-1].value == 0;
 
-					occupied[i][j].value = 0;
-					occupied[i][j-1].changed = true;
-					j -= 1;
-					changed = true;
-				}
+				// Add values
+				tiles[i][j-1].value += tiles[i][j].value;
+
+				// Tile moves, so leaves a 0-tile
+				tiles[i][j].value = 0;
+
+				// Mark tile as changed if it wasn't 0 before
+				tiles[i][j-1].changed = !toZeroTile;
+
+				// Board changed (we expect a new tile)
+				changed = true;
+
+				// Change score
+				score += tiles[i][j-1].value;
+
+				// If we moved to a 0-tile, we need to check that again
+				j = (toZeroTile) ? j - 2 : j;
 			}
 		}
 	}
@@ -107,22 +132,27 @@ function moveleft() {
 function moveright() {
 	for (var i = gridsize - 1; i >= 0; i--) {
 		for (var j = gridsize - 1; j >= 0; j--) {
-			if (occupied[i][j].value != 0) {
-				if (j < gridsize - 1 && occupied[i][j+1].value == 0) {
-					occupied[i][j+1].value = occupied[i][j].value;
-					occupied[i][j].value = 0;
-					j += 2;
-					changed = true;
-				}
-				else if (j < gridsize - 1 && occupied[i][j+1].value == occupied[i][j].value && !occupied[i][j+1].changed) {
-					occupied[i][j+1].value = occupied[i][j].value * 2;
-					score += occupied[i][j+1].value;
+			if (j < gridsize - 1 && tiles[i][j].value != 0 && (tiles[i][j+1].value == tiles[i][j].value || tiles[i][j+1].value == 0) && !tiles[i][j+1].changed) {
+				// Check if we move to 0-tile
+				var toZeroTile = tiles[i][j+1].value == 0;
 
-					occupied[i][j].value = 0;
-					occupied[i][j+1].changed = true;
-					j += 1;
-					changed = true;
-				}
+				// Add values
+				tiles[i][j+1].value += tiles[i][j].value;
+
+				// Tile moves, so leaves a 0-tile
+				tiles[i][j].value = 0;
+
+				// Mark tile as changed if it wasn't 0 before
+				tiles[i][j+1].changed = !toZeroTile;
+
+				// Board changed (we expect a new tile)
+				changed = true;
+
+				// Change score
+				score += tiles[i][j+1].value;
+
+				// If we moved to a 0-tile, we need to check that again
+				j = (toZeroTile) ? j + 2 : j;
 			}
 		}
 	}
@@ -134,22 +164,27 @@ function moveright() {
 function movedown() {
 	for (var j = gridsize - 1; j >= 0; j--) {
 		for (var i = gridsize - 1; i >= 0; i--) {
-			if (occupied[i][j].value != 0) {
-				if (i < gridsize - 1 && occupied[i+1][j].value == 0) {
-					occupied[i+1][j].value = occupied[i][j].value;
-					occupied[i][j].value = 0;
-					i += 2;
-					changed = true;
-				}
-				else if (i < gridsize - 1 && occupied[i+1][j].value == occupied[i][j].value && !occupied[i+1][j].changed) {
-					occupied[i+1][j].value = occupied[i][j].value * 2;
-					score += occupied[i+1][j].value;
+			if (i < gridsize - 1 && tiles[i][j].value != 0 && (tiles[i+1][j].value == tiles[i][j].value || tiles[i+1][j].value == 0) && !tiles[i+1][j].changed) {
+				// Check if we move to 0-tile
+				var toZeroTile = tiles[i+1][j].value == 0;
 
-					occupied[i][j].value = 0;
-					occupied[i+1][j].changed = true;
-					i += 1;
-					changed = true;
-				}
+				// Add values
+				tiles[i+1][j].value += tiles[i][j].value;
+
+				// Tile moves, so leaves a 0-tile
+				tiles[i][j].value = 0;
+
+				// Mark tile as changed if it wasn't 0 before
+				tiles[i+1][j].changed = !toZeroTile;
+
+				// Board changed (we expect a new tile)
+				changed = true;
+
+				// Change score
+				score += tiles[i+1][j].value;
+
+				// If we moved to a 0-tile, we need to check that again
+				i = (toZeroTile) ? i + 2 : i;
 			}
 		}
 	}
@@ -160,23 +195,28 @@ function movedown() {
 
 function moveup() {
 	for (var j = 0; j < gridsize; j++) {
-		for (var i = 0; i < gridsize; i++) {
-			if (occupied[i][j].value != 0) {
-				if (i > 0 && occupied[i-1][j].value == 0) {
-					occupied[i-1][j].value = occupied[i][j].value;
-					occupied[i][j].value = 0;
-					i -= 2;
-					changed = true;
-				}
-				else if (i > 0 && occupied[i-1][j].value == occupied[i][j].value && !occupied[i-1][j].changed) {
-					occupied[i-1][j].value = occupied[i][j].value * 2;
-					score += occupied[i-1][j].value;
+		for (var i = 1; i < gridsize; i++) {
+			if (i > 0 && tiles[i][j].value != 0 && (tiles[i][j].value == tiles[i-1][j].value || tiles[i-1][j].value == 0) && !tiles[i-1][j].changed) {
+				// Check if we move to 0-tile
+				var toZeroTile = tiles[i-1][j].value == 0;
 
-					occupied[i][j].value = 0;
-					occupied[i-1][j].changed = true;
-					i -= 1;
-					changed = true;
-				}
+				// Add values
+				tiles[i-1][j].value += tiles[i][j].value;
+
+				// Tile moves, so leaves a 0-tile
+				tiles[i][j].value = 0;
+
+				// Mark tile as changed if it wasn't 0 before
+				tiles[i-1][j].changed = !toZeroTile;
+
+				// Board changed (we expect a new tile)
+				changed = true;
+
+				// Change score
+				score += tiles[i-1][j].value;
+
+				// If we moved to a 0-tile, we need to check that again
+				i = (toZeroTile) ? i - 2 : i;
 			}
 		}
 	}
@@ -189,9 +229,9 @@ function writeGrid() {
 	for (var i = 0; i < gridsize; i++) {
 		for (var j = 0; j < gridsize; j++) {
 			var tile = document.getElementById(i + "" + j);
-			tile.innerHTML = (occupied[i][j].value != 0) ? occupied[i][j].value : "";
+			tile.innerHTML = (tiles[i][j].value != 0) ? tiles[i][j].value : "";
 			removeClassByPrefix(tile, "tile-");
-			tile.classList.add('tile-' + occupied[i][j].value);
+			tile.classList.add('tile-' + tiles[i][j].value);
 		}
 	}
 
@@ -209,7 +249,7 @@ function next(initializing) {
 	var empty = [];
 	for (var i = 0; i < gridsize; i++) {
 		for (var j = 0; j < gridsize; j++) {
-			if (occupied[i][j].value == 0) {
+			if (tiles[i][j].value == 0) {
 				var newEmpty = [i, j];
 				empty.push(newEmpty);
 			}
@@ -217,14 +257,14 @@ function next(initializing) {
 	}
 
 	if (empty.length != 0 && (changed || initializing)) {
-		var newRandom = Math.floor(Math.random()*empty.length);
+		var newRandom = Math.floor(Math.random() * empty.length);
 		var i = empty[newRandom][0];
 		var j = empty[newRandom][1];
 		if (Math.floor(Math.random() * 100) < 85) {
-			occupied[empty[newRandom][0]][empty[newRandom][1]].value = 2;
+			tiles[empty[newRandom][0]][empty[newRandom][1]].value = 2;
 		}
 		else {
-			occupied[empty[newRandom][0]][empty[newRandom][1]].value = 4;
+			tiles[empty[newRandom][0]][empty[newRandom][1]].value = 4;
 		}
 
 		transition(i + "" + j, 500);
@@ -238,7 +278,7 @@ function next(initializing) {
 	// Remove "changed" flag
 	for (var i = 0; i < gridsize; i++) {
 		for (var j = 0; j < gridsize; j++) {
-			occupied[i][j].changed = false;
+			tiles[i][j].changed = false;
 		}
 	}
 
@@ -273,10 +313,10 @@ function fadeIn(node, time) {
 function checkGameover() {
 		for (var i = 0; i < gridsize; i++) {
 			for (var j = 0; j < gridsize; j++) {
-				if (occupied[i] && occupied[i][j-1] && occupied[i][j-1].value == occupied[i][j].value ||
-					occupied[i] && occupied[i][j+1] && occupied[i][j+1].value == occupied[i][j].value ||
-					occupied[i-1] && occupied[i-1][j] && occupied[i-1][j].value == occupied[i][j].value ||
-					occupied[i+1] && occupied[i+1][j] && occupied[i+1][j].value == occupied[i][j].value
+				if (tiles[i] && tiles[i][j-1] && tiles[i][j-1].value == tiles[i][j].value ||
+					tiles[i] && tiles[i][j+1] && tiles[i][j+1].value == tiles[i][j].value ||
+					tiles[i-1] && tiles[i-1][j] && tiles[i-1][j].value == tiles[i][j].value ||
+					tiles[i+1] && tiles[i+1][j] && tiles[i+1][j].value == tiles[i][j].value
 				) {
 					return;
 				}
